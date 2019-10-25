@@ -5,7 +5,8 @@ import Appointment from '../models/Appointments';
 import File from '../models/File';
 import User from '../models/User';
 import Notification from '../schemas/Notification';
-import Mail from '../../lib/Mail';
+import Queue from '../../lib/Queue';
+import CancellationMail from '../jobs/CancellationMail';
 
 // ********* Listagem de agendamentos do usuário comum *********
 class AppointmentController {
@@ -98,9 +99,7 @@ class AppointmentController {
     });
 
     if (checkAvailability) {
-      return res
-        .status(400)
-        .json({ error: 'Appointmnt date is not available' });
+      return res.status(400).json({ error: 'This date is not available' });
     }
 
     const appointment = await Appointment.create({
@@ -169,6 +168,10 @@ class AppointmentController {
     appointment.canceled_at = new Date();
     await appointment.save();
 
+    await Queue.add(CancellationMail.key, {
+      appointment,
+    });
+
     const formattedDate = format(
       appointment.date,
       "'dia' dd'/'MM', às' H:mm'h'",
@@ -182,17 +185,6 @@ class AppointmentController {
       content: `O usuário ${appointment.user.name} cancelou o agendamento do
      ${formattedDate}`,
       user: appointment.provider_id,
-    });
-
-    await Mail.sendMail({
-      to: `${appointment.provider.name} <${appointment.provider.email}>`,
-      subject: 'Agendamento cancelado',
-      template: 'cancellation',
-      context: {
-        provider: appointment.provider.name,
-        user: appointment.user.name,
-        date: formattedDate,
-      },
     });
 
     return res.json(appointment);
