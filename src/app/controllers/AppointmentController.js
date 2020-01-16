@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
 import pt from 'date-fns/locale/pt';
-import Appointment from '../models/Appointments';
+import Appointment from '../models/Appointment';
 import File from '../models/File';
 import User from '../models/User';
 import Notification from '../schemas/Notification';
@@ -23,7 +23,7 @@ class AppointmentController {
       order: ['date'],
       attributes: ['id', 'date', 'past', 'cancelable'],
       limit: 10,
-      // Em offset definimos quantos registros queremos PULAR, baseado na página
+      // Em offset definimos quantos registros queremos **PULAR**, baseado na página
       // em que nos encontramos
       offset: (page - 1) * 10,
       // Abaixo estamos trazendo os dados do relacionamento com o 'provider'
