@@ -3,6 +3,7 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import File from '../models/File';
 import authConfig from '../../config/auth';
 
 class SessionController {
@@ -20,7 +21,16 @@ class SessionController {
 
     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
 
     if (!user) {
       // 401 - Not Authorized
@@ -33,12 +43,14 @@ class SessionController {
 
     // Após consistir a senha acima, iremos retornar
     // as info do usuário e o token
-    const { id, name } = user;
+    const { id, name, avatar, provider } = user;
     return res.json({
       user: {
         id,
         name,
         email,
+        provider,
+        avatar,
       },
       // Abaixo estamos passando as informações que serão
       // enviadas junto ao payload do token.

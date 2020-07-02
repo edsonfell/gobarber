@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import 'express-async-errors';
 import path from 'path';
+import cors from 'cors';
 import Youch from 'youch';
 import * as Sentry from '@sentry/node';
 import sentryConfig from './config/sentry';
@@ -23,7 +24,10 @@ class App {
   middlewares() {
     // Middleware do Sentry para verificações de erros na API
     this.server.use(Sentry.Handlers.requestHandler());
-
+    // A configuração abaixo do CORS define qual endereço externo poderá acessar
+    // nossas rotas. Para ambiente dev deixamos em branco.
+    // this.server.use(cors({ origin: 'https://rocketseat.com.br' }));
+    this.server.use(cors());
     this.server.use(express.json());
 
     // Aqui definimos uma rota que irá servir arquivos estáticos
